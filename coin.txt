@@ -1,0 +1,70 @@
+import { useEffect, useState } from "react";
+function App() {
+  const [loading, setLoading] = useState(true);
+  const [coins, setCoins] = useState([]);
+  const [usd, setUsd] = useState(1);
+  const [inputMoney, setInputMoney] = useState(1);
+  const [index, setIndex] = useState("x");
+
+  function currencySelect(e) {
+    setIndex(e.target.value);
+  }
+
+  function usdPrice(e) {
+    setUsd(e.target.value);
+    setInputMoney(1);
+  }
+
+  function inputDollors(e) {
+    setInputMoney(e.target.value);
+  }
+
+  useEffect(function () {
+    fetch("https://api.coinpaprika.com/v1/tickers?limit=50").then(function (
+      response
+    ) {
+      response.json().then(function (json) {
+        setCoins(json);
+        setLoading(false);
+      });
+    });
+  }, []);
+
+  return (
+    <div>
+      <h1>The Coins! {loading ? "" : `(${coins.length})`}</h1>
+      <select value={index} onChange={currencySelect}>
+        <option value="x">선택하세요</option>
+        <option value="1">USD → BTC</option>
+        <option value="2">KRW → BTC </option>
+      </select>
+      {index === "x" ? "종류를 선택하세요.." : null}
+      {index === "1" ? (
+        <input
+          type="number"
+          value={inputMoney}
+          onChange={inputDollors}
+          placeholder="가진 달러를 입력하세요."
+        />
+      ) : null}
+      {index === "2" ? "원하는 단위를 선택하세요." : null}
+
+      {loading ? (
+        <strong>Loading...</strong>
+      ) : (
+        <select onChange={usdPrice}>
+          {coins.map(function (item, index) {
+            return (
+              <option key={index} value={item.quotes.USD.price}>
+                {item.name} ({item.symbol}) : $ {item.quotes.USD.price} USD
+              </option>
+            );
+          })}
+        </select>
+      )}
+      <h2>살 수 있는 코인은 : ₿ {inputMoney / usd}</h2>
+    </div>
+  );
+}
+
+export default App;
